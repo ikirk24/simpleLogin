@@ -10,17 +10,42 @@ const db = mysql.createPool({
     database: process.env.DB_DATABASE
 })
 
-async function testDbConnection() {
-  try {
-    const [rows] = await db.query("SELECT 1");
-    console.log("✅ Database connected successfully");
-  } catch (err) {
-    console.error("❌ Database connection failed:", err.message);
-    process.exit(1);
-  }
+// async function testDbConnection() {
+//   try {
+//     const [rows] = await db.query("SELECT 1");
+//     console.log("✅ Database connected successfully");
+//   } catch (err) {
+//     console.error("❌ Database connection failed:", err.message);
+//     process.exit(1);
+//   }
+// }
+
+// await testDbConnection();
+
+//Create DB CRUD Methods 
+
+// Create User 
+
+export async function createUser ( email, phone_number, age, password) {
+    const [result] = await db.query(`
+        INSERT INTO users (email, phone_number, age, password_hashed)
+        VALUES (?, ?, ?, ?)
+        `, [email, phone_number, age, password])
+        const id = result.insertId
+        return await getOneUser(id);
 }
 
-await testDbConnection();
+// Get One User 
+
+export async function getOneUser(id) {
+    const [rows] = await db.query(`
+        SELECT id, email, phone_number, age, created_at
+        FROM users
+        WHERE id = ?
+        `, [id])
+        return rows;
+}
+
 
 
 export default db
