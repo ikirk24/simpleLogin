@@ -46,6 +46,15 @@ export async function getOneUser(id) {
         return rows;
 }
 
+export async function getUserByEmail(email) {
+    const [rows] = await db.query(`
+        SELECT email, password_hashed
+        FROM users 
+        WHERE email = ?
+        `, [email])
+        return rows[0];
+}
+
 
 
 export default db
