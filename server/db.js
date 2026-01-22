@@ -46,6 +46,14 @@ export async function getOneUser(id) {
         return rows;
 }
 
+export async function getUsers() {
+    const [rows] = await db.query(`
+        SELECT id, email, phone_number, age, created_at 
+        FROM users 
+        `)
+        return rows; 
+}
+
 export async function getUserByEmail(email) {
     const [rows] = await db.query(`
         SELECT email, password_hashed
