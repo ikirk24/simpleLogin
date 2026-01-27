@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import { Link } from 'react-router-dom';
+import '../app/routes/app.css'
+import { Link, useNavigate} from 'react-router-dom';
 
 export default function UserForm ({
     mode = "login", 
@@ -20,6 +21,7 @@ export default function UserForm ({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("")
 
+    const navigate = useNavigate();
     async function handleSubmit(e) {
         e.preventDefault(e);
         setLoading(true);
@@ -32,7 +34,7 @@ export default function UserForm ({
             const body = isSignUp ? {email, password, phone_number, age: Number(age)} : {email, password};
 
             if(!email || !password ) throw new Error("Both email and password are required");
-            if (isSignup && (!phone_number || !age )) throw new Error("Fill out all boxes")
+            if (isSignUp && (!phone_number || !age )) throw new Error("Fill out all boxes")
 
             const res = await fetch(url, {
                 method: "POST", 
@@ -53,6 +55,7 @@ export default function UserForm ({
             }
 
             onSuccess?.(data);
+            !isSignUp ? navigate('/profile') : navigate('/')
         } catch(err) {
             setError(err.message || "Something went wrong") 
         } finally {
@@ -64,61 +67,52 @@ export default function UserForm ({
     return (
         <div className="container">
             <h1> {isSignUp ? "Sign up" : "Log in"}</h1>
+            <br />
             <form onSubmit={handleSubmit}>
-                <label>
-                    Email
-                    <input 
+                 <input 
                     className="email"
                     type="email" 
-                    placeholder = "Type in your email..."
+                    placeholder = "Email"
                     value={email} 
                     onChange = {(e) => setEmail(e.target.value)}/>
-                </label>
-
-
+                
+                <br />
                  {isSignUp ? 
                 <>
-                    <label>
-                        Phone Number
                         <input
                         className = "phoneNumber"
                         type="tel"
-                        placeholder = "Type in your phone number"
+                        placeholder = "Phone Number"
                         value ={phone_number}
                         onChange = {(e) => setPhoneNumber(e.target.value)}
                         />
-                    </label>
-                    <label>
-                        Age
+                    <br />
                         <input
                         className = "age"
                         type="number"
-                        placeholder = "Type in your age"
+                        placeholder = "Age"
                         value ={age}
                         onChange = {(e) => setAge(e.target.value)}
                         />
-                    </label>
+                        <br />
                 </>
-
+                
                 : null } 
-
-                <label>
-                    Password
                     <input 
                     className="password"
                     type="password" 
-                    placeholder = "*********"
+                    placeholder = "Password"
                     value={password} 
                     onChange = {(e) => setPassword(e.target.value)}
                     />
-                </label>
 
-
-                <button type="submit" disabled={loading}>
+                    <br />
+                <button className="submitBtn" type="submit" disabled={loading}>
                     {loading ? "Please wait..." : isSignUp ? "Create Account" : "Log In" }
                 </button>
 
-                {isSignUp ? <button> <Link to="/">Log in</Link></button> : <button> <Link to="/signup">Sign Up</Link></button>}
+                {isSignUp ? <p> Already have an account? <Link to="/">Sign in</Link></p>:
+                 <p> Don't have an account yet? <Link to="/signup">Sign Up</Link></p>}
                 {error && <p>{error}</p>}
                                      
             </form>

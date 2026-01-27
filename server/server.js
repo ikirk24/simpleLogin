@@ -30,7 +30,7 @@ app.get('/', async (req, res) => {
     return res.json({message: "Connected to frontend", users});
 })
 
-app.post('/', async (req, res) => {
+app.post('/login', async (req, res) => {
    const {email, password} = req.body; 
 
    if(!email || !password) {

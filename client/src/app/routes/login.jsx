@@ -4,7 +4,7 @@ import UserForm from '../../components/userForm';
 export default function Login() {
 
     return (
-        <div>
+        <div className = "wrapper">
             <UserForm mode="login"/>
         </div>
     )
