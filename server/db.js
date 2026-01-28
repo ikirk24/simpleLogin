@@ -43,7 +43,7 @@ export async function getOneUser(id) {
         FROM users
         WHERE id = ?
         `, [id])
-        return rows;
+        return rows[0];
 }
 
 export async function getUsers() {
@@ -56,7 +56,7 @@ export async function getUsers() {
 
 export async function getUserByEmail(email) {
     const [rows] = await db.query(`
-        SELECT email, password_hashed
+        SELECT email, id, age, phone_number, password_hashed
         FROM users 
         WHERE email = ?
         `, [email])

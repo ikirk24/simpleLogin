@@ -6,10 +6,6 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
-
-
-
-
 dotenv.config();
 
 const app = express(); 
@@ -24,12 +20,18 @@ app.use(cors({
     credentials: true
 }))
 
-//Login Route 
-app.get('/', async (req, res) => {
+app.use((req, _res, next) => {
+  console.log("INCOMING:", req.method, req.url);
+  next();
+});
+
+
+app.get('/', reqAuth, async (req, res) => {
     const users = await getUsers(); 
-    return res.json({message: "Connected to frontend", users});
+    return res.json({message: "Heres a list of all users", users});
 })
 
+//Login Route 
 app.post('/login', async (req, res) => {
    const {email, password} = req.body; 
 
@@ -49,11 +51,13 @@ app.post('/login', async (req, res) => {
    }
 
    const accessToken = jwt.sign(
-       { sub: user.id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
+       { id: user.id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
 
    res.cookie("accessToken", accessToken, {
             httpOnly: true,
             sameSite: "lax", 
+            secure: false, 
+            path: "/",
             maxAge: 1000 * 60 * 60 * 24
         }) 
 
@@ -94,6 +98,8 @@ app.post('/signup', async (req,res) => {
 
 })
 
+//Auth Middleware 
+
 async function reqAuth (req, res, next) {
     const cookieToken = req.cookies?.accessToken; 
 
@@ -105,22 +111,48 @@ async function reqAuth (req, res, next) {
             console.log("JWT VERIFY ERROR: ", err.message);
             return res.sendStatus(403);
         }
-        req.user = user
+        req.user = user;
         next()
     })
 }
 
-app.get('/profile', reqAuth, async (req, res) => {
-    const user = await getOneUser(req.user.id)
+
+// Profile Route
+app.get("/profile", reqAuth, async (req, res) => {
+  try {
+    console.log("DECODED TOKEN:", req.user);
+    console.log("LOOKUP ID:", req.user?.id);
+    const user = await getOneUser(req.user.id);
+
+     console.log("DB USER:", user);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     res.status(200).json({
-        id: user.id,
-        email: user.email,
-        phoneNumber: user.phone_number, 
-        age: user.age
-    })
+      id: user.id,
+      email: user.email,
+      phoneNumber: user.phone_number,
+      age: user.age
+    });
+  } catch (err) {
+    console.error("PROFILE ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+//Logout Route 
+
+app.post("/logout", (req, res) => {
+    res.clearCookie("accessToken", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+        path: "/"
+    });
+
+    return res.status(200).json({message: "User has been logged out"})
 })
-
-
 
 app.listen(port, () => {
     console.log(`Now listening on port http://localhost:${port}`)
